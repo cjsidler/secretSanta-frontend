@@ -7,7 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import ParticipantRow from "../components/ParticipantRow";
 import NewPartForm from "../components/NewPartForm";
 import { FaQuestionCircle } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useReducer } from "react";
 
 import { generate_arrays, generate_secret_draw } from "../helpers/generator";
 
@@ -19,6 +19,7 @@ const DrawPage = ({
     addNewParticipant,
     updateParticipant,
     onDelete,
+    updateMultParticipants,
 }) => {
     const { userId, xchgId, drawId } = useParams();
 
@@ -29,21 +30,19 @@ const DrawPage = ({
     const [curRestrictions, setCurRestrictions] = useState([]);
 
     const [secretDrawing, setSecretDrawing] = useState([]);
+    const [secretDrawUpdated, setSecretDrawUpdated] = useState(false);
 
     const [showNewPartForm, setShowNewPartForm] = useState(false);
+
+    const [_, forceUpdate] = useReducer((x) => x + 1, 0);
+
+    console.log({ participants });
 
     // TODO: Fix problem where after Generate Drawing button is pressed,
     // recipients appear to be picked correctly, but not all on the page,
     // will be updated and a refresh will be necessary
 
     useEffect(() => {
-        setCurExchange(
-            giftExchanges.filter(
-                (exchange) =>
-                    exchange.userId === userId && exchange.id === xchgId
-            )
-        );
-
         setCurDraw(
             draws.filter(
                 (draw) =>
@@ -52,7 +51,18 @@ const DrawPage = ({
                     draw.id === drawId
             )
         );
+    }, [draws]);
 
+    useEffect(() => {
+        setCurExchange(
+            giftExchanges.filter(
+                (exchange) =>
+                    exchange.userId === userId && exchange.id === xchgId
+            )
+        );
+    }, [giftExchanges]);
+
+    useEffect(() => {
         setCurParticipants(
             participants.filter(
                 (participant) =>
@@ -61,7 +71,9 @@ const DrawPage = ({
                     participant.drawId === drawId
             )
         );
+    }, [participants]);
 
+    useEffect(() => {
         setCurRestrictions(
             restrictions.filter(
                 (restriction) =>
@@ -70,13 +82,14 @@ const DrawPage = ({
                     restriction.drawId === drawId
             )
         );
-    }, [draws, giftExchanges, participants, restrictions]);
+    }, [restrictions]);
 
     useEffect(() => {
         // We need pyParticipants to be an array of the
         // curParticipants that also participated last year.
         if (curParticipants[0] && curDraw[0]) {
             const pyPartArray = [];
+
             curParticipants.forEach((part) => pyPartArray.push([]));
 
             const priorYear = curDraw[0].year - 1;
@@ -102,39 +115,41 @@ const DrawPage = ({
         }
     }, [curDraw, draws, participants]);
 
-    useEffect(() => {
-        console.log("useEffect run");
-        if (secretDrawing[0]) {
-            console.log("useEffect run inside if statement");
-            let index = 0;
+    // useEffect(() => {
+    //     console.log("useEffect run");
+    //     if (secretDrawing[0]) {
+    //         console.log("useEffect run inside if statement");
+    //         let index = 0;
 
-            // Send a participant update to the server for each element in secretDrawing.draw array
-            function callUpdateParticipant() {
-                setTimeout(function () {
-                    const curPart = secretDrawing[0].draw[index];
+    //         // Send a participant update to the server for each element in secretDrawing.draw array
+    //         function callUpdateParticipant() {
+    //             // setTimeout(function () {
+    //             const curPart = secretDrawing[0].draw[index];
 
-                    updateParticipant(curPart.id, {
-                        secretDraw: curPart.secretDraw,
-                    });
+    //             console.log({ secretDrawing, curPart, index });
 
-                    index++;
+    //             updateParticipant(curPart.id, {
+    //                 secretDraw: curPart.secretDraw,
+    //             });
 
-                    if (index < secretDrawing[0].draw.length) {
-                        callUpdateParticipant();
-                    }
-                }, 750);
-            }
+    //             index++;
 
-            callUpdateParticipant();
+    //             if (index < secretDrawing[0].draw.length) {
+    //                 callUpdateParticipant();
+    //             }
+    //             // }, 750);
+    //         }
 
-            // If clean drawing was not possible, alert the user
-            if (!secretDrawing[0].cleanDraw) {
-                alert(
-                    "A clean drawing was unfortunately not possible. Each participant's recipient will be updated but a participant may have drawn one of their restrictions or drawn somebody they got a gift for last year. You can try clicking Generate Drawing again or remove some restrictions from the current year's participants."
-                );
-            }
-        }
-    }, [secretDrawing]);
+    //         callUpdateParticipant();
+
+    //         // If clean drawing was not possible, alert the user
+    //         if (!secretDrawing[0].cleanDraw) {
+    //             alert(
+    //                 "A clean drawing was unfortunately not possible. Each participant's recipient will be updated but a participant may have drawn one of their restrictions or drawn somebody they got a gift for last year. You can try clicking Generate Drawing again or remove some restrictions from the current year's participants."
+    //             );
+    //         }
+    //     }
+    // }, [secretDrawing]);
 
     const generateHandler = async () => {
         const res_obj = generate_arrays(
@@ -150,23 +165,26 @@ const DrawPage = ({
             100
         );
 
-        const myPromise = new Promise((resolve, reject) => {
-            let index = 0;
+        updateMultParticipants(secretDrawResult.draw).then(() => forceUpdate());
 
-            while (index < secretDrawResult.draw.length) {
-                const curPart = secretDrawResult.draw[index];
+        // const myPromise = new Promise((resolve, reject) => {
+        // let index = 0;
 
-                updateParticipant(curPart.id, {
-                    secretDraw: curPart.secretDraw,
-                });
+        // while (index < secretDrawResult.draw.length) {
+        //     const curPart = secretDrawResult.draw[index];
 
-                index++;
-            }
+        //     updateParticipant(curPart.id, {
+        //         secretDraw: curPart.secretDraw,
+        //     });
 
-            resolve(secretDrawResult);
-        });
+        //     index++;
+        // }
 
-        myPromise.then((data) => setSecretDrawing([data]));
+        // resolve(secretDrawResult);
+
+        // });
+
+        // myPromise.then((data) => setSecretDrawing([data]));
     };
 
     return (
@@ -203,8 +221,7 @@ const DrawPage = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {console.log({ curParticipants })}
-                    {curParticipants.map((participant, i) => {
+                    {curParticipants.map((participant, id) => {
                         return (
                             <ParticipantRow
                                 name={participant.name}
@@ -212,7 +229,7 @@ const DrawPage = ({
                                 secretDraw={participant.secretDraw}
                                 participantId={participant.id}
                                 onDelete={onDelete}
-                                key={i}
+                                key={id}
                             />
                         );
                     })}

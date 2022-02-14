@@ -110,3 +110,5 @@ seeds.js
 db.*
 db-*
 *.py
+
+.vscode

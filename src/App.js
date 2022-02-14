@@ -1,6 +1,6 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useReducer } from "react";
 import HomePage from "./pages/HomePage";
 import GiftExchangesPage from "./pages/GiftExchangesPage";
 import ExchangePage from "./pages/ExchangePage";
@@ -179,11 +179,41 @@ function App() {
 
         const data = await res.json();
 
-        setParticipants(
-            participants.map((participant) =>
-                participant.id === data.id ? data : participant
-            )
+        let result = participants.map((participant) =>
+            participant.id === data.id ? data : participant
         );
+
+        setParticipants(result);
+    };
+
+    // Update multiple participants with new name/email
+    const updateMultParticipants = async (updateObjs) => {
+        const updatedParticipants = [];
+
+        for (const obj of updateObjs) {
+            const res = await fetch(
+                `http://localhost:5000/participants/${obj.id}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-type": "application/json" },
+                    body: JSON.stringify({
+                        id: obj.id,
+                        secretDraw: obj.secretDraw,
+                    }),
+                }
+            );
+
+            const data = await res.json();
+
+            updatedParticipants.push(data);
+        }
+
+        updatedParticipants.forEach((obj) => {
+            const result = participants.map((participant) =>
+                participant.id === obj.id ? obj : participant
+            );
+            setParticipants(result);
+        });
     };
 
     return (
@@ -230,6 +260,9 @@ function App() {
                                     addNewParticipant={addNewParticipant}
                                     updateParticipant={updateParticipant}
                                     onDelete={removeParticipant}
+                                    updateMultParticipants={
+                                        updateMultParticipants
+                                    }
                                 />
                             }
                         />
