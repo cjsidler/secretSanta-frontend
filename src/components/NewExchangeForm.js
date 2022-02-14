@@ -1,0 +1,63 @@
+import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
+import Stack from "react-bootstrap/Stack";
+import { useState } from "react";
+
+const NewExchangeForm = ({
+    user,
+    showNewExchange,
+    setShowNewExchange,
+    addExchange,
+}) => {
+    const [newExchangeName, setNewExchangeName] = useState("");
+
+    const onSubmit = (e) => {
+        e.preventDefault();
+
+        if (!newExchangeName) {
+            alert("Please enter a name for the new gift exchange!");
+            return;
+        }
+
+        const newExchange = {
+            name: newExchangeName,
+            userId: user.id,
+        };
+
+        addExchange(newExchange);
+
+        setShowNewExchange(!showNewExchange);
+        setNewExchangeName("");
+    };
+
+    return (
+        <Form onSubmit={onSubmit}>
+            <Form.Group className="mb-3" controlId="newExchangeName">
+                <Form.Label>New Gift Exchange:</Form.Label>
+                <Form.Control
+                    type="text"
+                    placeholder="Enter name"
+                    onChange={(e) => setNewExchangeName(e.target.value)}
+                />
+            </Form.Group>
+
+            <Stack direction="horizontal" gap={5}>
+                <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => setShowNewExchange(!showNewExchange)}
+                >
+                    Cancel
+                </Button>
+
+                <div className="ms-auto"></div>
+
+                <Button variant="warning" type="submit">
+                    Create
+                </Button>
+            </Stack>
+        </Form>
+    );
+};
+
+export default NewExchangeForm;
