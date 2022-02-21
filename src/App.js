@@ -1,6 +1,6 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect, useState, useReducer } from "react";
+import { useEffect, useState } from "react";
 import HomePage from "./pages/HomePage";
 import GiftExchangesPage from "./pages/GiftExchangesPage";
 import ExchangePage from "./pages/ExchangePage";
@@ -51,8 +51,7 @@ function App() {
     };
 
     // Add new gift exchange
-    // TODO: Add functionality to bring in participants
-    // from previous drawing if it exists.
+    // TODO: Add functionality to bring in participants from previous drawing if it exists.
     const addExchange = async (exchange) => {
         const res = await fetch("http://localhost:5000/giftexchanges", {
             method: "POST",
@@ -208,12 +207,23 @@ function App() {
             updatedParticipants.push(data);
         }
 
-        updatedParticipants.forEach((obj) => {
-            const result = participants.map((participant) =>
-                participant.id === obj.id ? obj : participant
-            );
-            setParticipants(result);
-        });
+        let tempParticipants = [...participants];
+
+        for (const newPart of updatedParticipants) {
+            let tempArr = [];
+
+            for (const oldPart of tempParticipants) {
+                if (oldPart.id === newPart.id) {
+                    tempArr.push(newPart);
+                } else {
+                    tempArr.push(oldPart);
+                }
+            }
+
+            tempParticipants = [...tempArr];
+        }
+
+        setParticipants(tempParticipants);
     };
 
     return (
@@ -258,11 +268,11 @@ function App() {
                                     participants={participants}
                                     restrictions={restrictions}
                                     addNewParticipant={addNewParticipant}
-                                    updateParticipant={updateParticipant}
                                     onDelete={removeParticipant}
                                     updateMultParticipants={
                                         updateMultParticipants
                                     }
+                                    setParticipants={setParticipants}
                                 />
                             }
                         />

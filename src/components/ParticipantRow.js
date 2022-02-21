@@ -1,7 +1,6 @@
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Button from "react-bootstrap/Button";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
 
 const ParticipantRow = ({
     name,

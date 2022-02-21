@@ -7,7 +7,7 @@ import { Link, useParams } from "react-router-dom";
 import ParticipantRow from "../components/ParticipantRow";
 import NewPartForm from "../components/NewPartForm";
 import { FaQuestionCircle } from "react-icons/fa";
-import { useState, useEffect, useCallback, useReducer } from "react";
+import { useState, useEffect } from "react";
 
 import { generate_arrays, generate_secret_draw } from "../helpers/generator";
 
@@ -17,7 +17,6 @@ const DrawPage = ({
     participants,
     restrictions,
     addNewParticipant,
-    updateParticipant,
     onDelete,
     updateMultParticipants,
 }) => {
@@ -29,18 +28,7 @@ const DrawPage = ({
     const [pyParticipants, setPyParticipants] = useState([]);
     const [curRestrictions, setCurRestrictions] = useState([]);
 
-    const [secretDrawing, setSecretDrawing] = useState([]);
-    const [secretDrawUpdated, setSecretDrawUpdated] = useState(false);
-
     const [showNewPartForm, setShowNewPartForm] = useState(false);
-
-    const [_, forceUpdate] = useReducer((x) => x + 1, 0);
-
-    console.log({ participants });
-
-    // TODO: Fix problem where after Generate Drawing button is pressed,
-    // recipients appear to be picked correctly, but not all on the page,
-    // will be updated and a refresh will be necessary
 
     useEffect(() => {
         setCurDraw(
@@ -115,42 +103,6 @@ const DrawPage = ({
         }
     }, [curDraw, draws, participants]);
 
-    // useEffect(() => {
-    //     console.log("useEffect run");
-    //     if (secretDrawing[0]) {
-    //         console.log("useEffect run inside if statement");
-    //         let index = 0;
-
-    //         // Send a participant update to the server for each element in secretDrawing.draw array
-    //         function callUpdateParticipant() {
-    //             // setTimeout(function () {
-    //             const curPart = secretDrawing[0].draw[index];
-
-    //             console.log({ secretDrawing, curPart, index });
-
-    //             updateParticipant(curPart.id, {
-    //                 secretDraw: curPart.secretDraw,
-    //             });
-
-    //             index++;
-
-    //             if (index < secretDrawing[0].draw.length) {
-    //                 callUpdateParticipant();
-    //             }
-    //             // }, 750);
-    //         }
-
-    //         callUpdateParticipant();
-
-    //         // If clean drawing was not possible, alert the user
-    //         if (!secretDrawing[0].cleanDraw) {
-    //             alert(
-    //                 "A clean drawing was unfortunately not possible. Each participant's recipient will be updated but a participant may have drawn one of their restrictions or drawn somebody they got a gift for last year. You can try clicking Generate Drawing again or remove some restrictions from the current year's participants."
-    //             );
-    //         }
-    //     }
-    // }, [secretDrawing]);
-
     const generateHandler = async () => {
         const res_obj = generate_arrays(
             curParticipants,
@@ -165,26 +117,7 @@ const DrawPage = ({
             100
         );
 
-        updateMultParticipants(secretDrawResult.draw).then(() => forceUpdate());
-
-        // const myPromise = new Promise((resolve, reject) => {
-        // let index = 0;
-
-        // while (index < secretDrawResult.draw.length) {
-        //     const curPart = secretDrawResult.draw[index];
-
-        //     updateParticipant(curPart.id, {
-        //         secretDraw: curPart.secretDraw,
-        //     });
-
-        //     index++;
-        // }
-
-        // resolve(secretDrawResult);
-
-        // });
-
-        // myPromise.then((data) => setSecretDrawing([data]));
+        updateMultParticipants(secretDrawResult.draw);
     };
 
     return (
