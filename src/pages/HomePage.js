@@ -1,9 +1,13 @@
 import Button from "react-bootstrap/Button";
-import { Link } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const santaLogo = require("../assets/santa-logo.png");
 
 const HomePage = ({ userId }) => {
+    const { user, isAuthenticated, loginWithRedirect } = useAuth0();
+
+    console.log({ user });
+
     return (
         <div className="container">
             <div className="row">
@@ -13,17 +17,11 @@ const HomePage = ({ userId }) => {
                     <h1 className="font-weight-bold">secretSanta</h1>
                     <h4>gift exchange manager</h4>
 
-                    <Link to={`/${userId}`}>
-                        <Button>Login</Button>
-                    </Link>
-                    <small>
-                        <p className="text-muted">
-                            Forgot password? <strong>Reset</strong>
-                        </p>
-                        <p className="text-muted">
-                            Don't have an account? <strong>Signup</strong>
-                        </p>
-                    </small>
+                    {!isAuthenticated && (
+                        <Button onClick={() => loginWithRedirect()}>
+                            Login
+                        </Button>
+                    )}
                 </div>
                 <div className="col-sm"></div>
             </div>

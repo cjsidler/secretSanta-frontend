@@ -5,9 +5,18 @@ import NewExchangeForm from "../components/NewExchangeForm";
 import { Link } from "react-router-dom";
 import { Breadcrumb } from "react-bootstrap";
 import { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 
-const GiftExchangesPage = ({ user, giftExchanges, addExchange, onDelete }) => {
+const GiftExchangesPage = ({
+    userData,
+    giftExchanges,
+    addExchange,
+    onDelete,
+}) => {
     const [showNewExchange, setShowNewExchange] = useState(false);
+    const { user, logout } = useAuth0();
+
+    console.log({ user });
 
     return (
         <>
@@ -16,7 +25,12 @@ const GiftExchangesPage = ({ user, giftExchanges, addExchange, onDelete }) => {
             </Breadcrumb>
 
             <Link to="/">
-                <Button variant="warning">Logout</Button>
+                <Button
+                    variant="warning"
+                    onClick={() => logout({ returnTo: window.location.origin })}
+                >
+                    Logout
+                </Button>
             </Link>
 
             <h1 className="font-weight-bold">giftExchanges</h1>
@@ -33,7 +47,7 @@ const GiftExchangesPage = ({ user, giftExchanges, addExchange, onDelete }) => {
                     {giftExchanges.map((exchange, i) => {
                         return (
                             <GiftExchangeRow
-                                user={user}
+                                user={userData}
                                 name={exchange.name}
                                 exchange={exchange}
                                 key={i}
@@ -46,7 +60,7 @@ const GiftExchangesPage = ({ user, giftExchanges, addExchange, onDelete }) => {
 
             {showNewExchange ? (
                 <NewExchangeForm
-                    user={user}
+                    user={userData}
                     setShowNewExchange={setShowNewExchange}
                     showNewExchange={showNewExchange}
                     addExchange={addExchange}

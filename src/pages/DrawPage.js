@@ -130,7 +130,7 @@ const DrawPage = ({
                 const emailReqObj = {
                     senderEmail: santaEmail,
                     password: santaPassword,
-                    senderName: "Santa Claus",
+                    senderName: "Secret Santa",
                     subject: "Your Secret Santa Gift Recipient!",
                     body: `You are getting ${email.secretDraw} a gift!`,
                     htmlTemplate: "Placeholder HTML Template",

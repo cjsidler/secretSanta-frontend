@@ -6,15 +6,18 @@ import GiftExchangesPage from "./pages/GiftExchangesPage";
 import ExchangePage from "./pages/ExchangePage";
 import DrawPage from "./pages/DrawPage";
 import ParticipantPage from "./pages/ParticipantPage";
+import ProtectedComponent from "./auth/ProtectedComponent";
+import { useAuth0 } from "@auth0/auth0-react";
 
 // TODO: Add window.confirm to all Deletes
 
 function App() {
-    const [user, setUser] = useState([]);
+    const [userData, setUserData] = useState([]);
     const [giftExchanges, setGiftExchanges] = useState([]);
     const [draws, setDraws] = useState([]);
     const [participants, setParticipants] = useState([]);
     const [restrictions, setRestrictions] = useState([]);
+    const { user, isAuthenticated, loginWithRedirect } = useAuth0();
 
     useEffect(() => {
         const getData = async () => {
@@ -27,7 +30,7 @@ function App() {
             };
 
             const data = await fetchData(paths);
-            setUser(...data.users);
+            setUserData(...data.users);
             setGiftExchanges(data.giftExchanges);
             setDraws(data.draws);
             setParticipants(data.participants);
@@ -234,13 +237,14 @@ function App() {
                         <Route
                             path="/"
                             exact
-                            element={<HomePage userId={user.id} />}
+                            element={<HomePage userId={userData.id} />}
                         />
                         <Route
                             path="/:userId"
                             element={
-                                <GiftExchangesPage
-                                    user={user}
+                                <ProtectedComponent
+                                    Component={GiftExchangesPage}
+                                    userData={userData}
                                     giftExchanges={giftExchanges}
                                     addExchange={addExchange}
                                     onDelete={removeExchange}
