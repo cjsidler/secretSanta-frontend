@@ -1,13 +1,13 @@
 const shuffle = require("shuffle-array");
 
-export function generate_arrays(participants, pyParticipants, restrictions) {
+export function generate_arrays(participants, pyParticipants) {
     // participants will be a array of participant objects from JSON server
     // pyParticipants will be a array of participant objects from JSON server
     // restrictions will be a array of restriction objects from JSON server
 
     // generate an array of names of participants
     const part_names = participants.map((participant) => participant.name);
-    const part_ids = participants.map((participant) => participant.id);
+    const part_ids = participants.map((participant) => participant._id);
 
     // generate an array of arrays of each respective participant's py draw
     const py_arrs = [];
@@ -25,14 +25,7 @@ export function generate_arrays(participants, pyParticipants, restrictions) {
 
     // generate an array of arrays of each respective participant's restrictions
     const rest_arrs = [];
-    part_names.forEach(() => rest_arrs.push([]));
-
-    restrictions.forEach((restriction) => {
-        const part_index = part_ids.indexOf(restriction.participantId);
-        if (part_index >= 0) {
-            rest_arrs[part_index].push(restriction.name);
-        }
-    });
+    participants.forEach((participant) => rest_arrs.push(participant.restrictions));
 
     // generate an array of arrays of each respective participants valid draws
     const valid_draws = [];
@@ -41,10 +34,7 @@ export function generate_arrays(participants, pyParticipants, restrictions) {
 
         part_names.forEach((pos_draw_name) => {
             if (cur_part_name !== pos_draw_name) {
-                if (
-                    !py_arrs[i].includes(pos_draw_name) &&
-                    !rest_arrs[i].includes(pos_draw_name)
-                ) {
+                if (!py_arrs[i].includes(pos_draw_name) && !rest_arrs[i].includes(pos_draw_name)) {
                     new_valid_draws.push(pos_draw_name);
                 }
             }
@@ -56,10 +46,7 @@ export function generate_arrays(participants, pyParticipants, restrictions) {
     return { part_names, part_ids, valid_draws };
 }
 
-export function generate_secret_draw(
-    { part_names, part_ids, valid_draws },
-    attempts
-) {
+export function generate_secret_draw({ part_names, part_ids, valid_draws }, attempts) {
     const start_indices = [];
     part_names.forEach((e, i) => start_indices.push(i));
 

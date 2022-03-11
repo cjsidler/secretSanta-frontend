@@ -4,19 +4,19 @@ import GiftExchangeRow from "../components/GiftExchangeRow";
 import NewExchangeForm from "../components/NewExchangeForm";
 import { Link } from "react-router-dom";
 import { Breadcrumb } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
-const GiftExchangesPage = ({
-    userData,
-    giftExchanges,
-    addExchange,
-    onDelete,
-}) => {
+const GiftExchangesPage = ({ userData, addExchange, onDelete }) => {
     const [showNewExchange, setShowNewExchange] = useState(false);
-    const { user, logout } = useAuth0();
+    const [giftExchanges, setGiftExchanges] = useState();
+    const { logout } = useAuth0();
 
-    console.log({ user });
+    useEffect(() => {
+        if (userData) {
+            setGiftExchanges(userData.giftExchanges);
+        }
+    }, [userData]);
 
     return (
         <>
@@ -24,14 +24,9 @@ const GiftExchangesPage = ({
                 <Breadcrumb.Item active>Gift Exchanges</Breadcrumb.Item>
             </Breadcrumb>
 
-            <Link to="/">
-                <Button
-                    variant="warning"
-                    onClick={() => logout({ returnTo: window.location.origin })}
-                >
-                    Logout
-                </Button>
-            </Link>
+            <Button variant="warning" onClick={() => logout({ returnTo: window.location.origin })}>
+                Logout
+            </Button>
 
             <h1 className="font-weight-bold">giftExchanges</h1>
 
@@ -44,31 +39,30 @@ const GiftExchangesPage = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {giftExchanges.map((exchange, i) => {
-                        return (
-                            <GiftExchangeRow
-                                user={userData}
-                                name={exchange.name}
-                                exchange={exchange}
-                                key={i}
-                                onDelete={onDelete}
-                            />
-                        );
-                    })}
+                    {giftExchanges &&
+                        giftExchanges.map((exchange, i) => {
+                            return (
+                                <GiftExchangeRow
+                                    userData={userData}
+                                    name={exchange.name}
+                                    exchange={exchange}
+                                    key={i}
+                                    onDelete={onDelete}
+                                />
+                            );
+                        })}
                 </tbody>
             </Table>
 
             {showNewExchange ? (
                 <NewExchangeForm
-                    user={userData}
+                    userData={userData}
                     setShowNewExchange={setShowNewExchange}
                     showNewExchange={showNewExchange}
                     addExchange={addExchange}
                 />
             ) : (
-                <Button onClick={() => setShowNewExchange(!showNewExchange)}>
-                    New Exchange
-                </Button>
+                <Button onClick={() => setShowNewExchange(!showNewExchange)}>New Exchange</Button>
             )}
         </>
     );

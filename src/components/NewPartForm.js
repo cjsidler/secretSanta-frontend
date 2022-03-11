@@ -4,13 +4,8 @@ import Stack from "react-bootstrap/Stack";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-const NewPartForm = ({
-    drawYear,
-    showNewPartForm,
-    setShowNewPartForm,
-    addNewParticipant,
-}) => {
-    const { userId, xchgId, drawId } = useParams();
+const NewPartForm = ({ userData, curDraw, showNewPartForm, setShowNewPartForm, addNewParticipant }) => {
+    const { xchgId, drawId } = useParams();
 
     const [newPartName, setNewPartName] = useState("");
     const [newPartEmail, setNewPartEmail] = useState("");
@@ -23,17 +18,26 @@ const NewPartForm = ({
             return;
         }
 
-        const newParticipant = {
-            name: newPartName,
-            email: newPartEmail,
-            userId: userId,
+        // check to see if name already exists in participant list
+        const participantExists = curDraw.participants.some((participant) => participant.name === newPartName);
+
+        if (participantExists) {
+            alert("A participant by that name already exists in this drawing! Please try a different name.");
+            return;
+        }
+
+        //userId, giftExchangeId, drawingId, and newParticipant (object with name and email)
+        const newParticipantObj = {
+            userId: userData._id,
             giftExchangeId: xchgId,
-            year: drawYear,
-            drawId: drawId,
-            secretDraw: "",
+            drawingId: drawId,
+            newParticipant: {
+                name: newPartName,
+                email: newPartEmail,
+            },
         };
 
-        addNewParticipant(newParticipant);
+        addNewParticipant(newParticipantObj);
 
         setShowNewPartForm(!showNewPartForm);
         setNewPartName("");
@@ -44,11 +48,7 @@ const NewPartForm = ({
         <Form onSubmit={onSubmit}>
             <Form.Group className="mb-3" controlId="newPartName">
                 <Form.Label>New Participant:</Form.Label>
-                <Form.Control
-                    type="text"
-                    placeholder="Enter name"
-                    onChange={(e) => setNewPartName(e.target.value)}
-                />
+                <Form.Control type="text" placeholder="Enter name" onChange={(e) => setNewPartName(e.target.value)} />
             </Form.Group>
             <Form.Group className="mb-3" controlId="newPartName">
                 <Form.Label>Email address:</Form.Label>
@@ -60,11 +60,7 @@ const NewPartForm = ({
             </Form.Group>
 
             <Stack direction="horizontal" gap={5}>
-                <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={() => setShowNewPartForm(!showNewPartForm)}
-                >
+                <Button variant="secondary" type="button" onClick={() => setShowNewPartForm(!showNewPartForm)}>
                     Cancel
                 </Button>
 

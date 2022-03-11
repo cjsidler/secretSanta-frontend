@@ -2,7 +2,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
 
-const GiftExchangeRow = ({ user, name, exchange, onDelete }) => {
+const GiftExchangeRow = ({ userData, name, exchange, onDelete }) => {
     const navigate = useNavigate();
 
     return (
@@ -11,10 +11,7 @@ const GiftExchangeRow = ({ user, name, exchange, onDelete }) => {
                 <p>{name}</p>
             </td>
             <td>
-                <Button
-                    variant="warning"
-                    onClick={() => navigate(`/${user.id}/${exchange.id}`)}
-                >
+                <Button variant="warning" onClick={() => navigate(`/giftexchanges/${exchange._id}`)}>
                     <FaEdit />
                 </Button>
             </td>
@@ -22,9 +19,8 @@ const GiftExchangeRow = ({ user, name, exchange, onDelete }) => {
                 <Button
                     variant="danger"
                     onClick={() => {
-                        window.confirm(
-                            "Are you sure you want to delete this gift exchange?"
-                        ) && onDelete(exchange.id);
+                        window.confirm("Are you sure you want to delete this gift exchange?") &&
+                            onDelete(userData._id, exchange._id);
                     }}
                 >
                     <FaTrashAlt />

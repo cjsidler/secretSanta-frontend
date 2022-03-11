@@ -8,156 +8,89 @@ import NewPartForm from "../components/NewPartForm";
 import { FaQuestionCircle } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { generate_arrays, generate_secret_draw } from "../helpers/generator";
+import { useAuth0 } from "@auth0/auth0-react";
 
-const santaEmail = process.env.REACT_APP_SANTAGMAILLOGIN;
-const santaPassword = process.env.REACT_APP_SANTAGMAILPASSWORD;
+const DrawPage = ({ userData, addNewParticipant, onDelete, updateParticipant }) => {
+    const santaEmail = process.env.REACT_APP_SANTAGMAILLOGIN;
+    const santaPassword = process.env.REACT_APP_SANTAGMAILPASSWORD;
+    const emailMicroserviceUrl = process.env.REACT_APP_EMAIL_MICROSERVICE_URL;
+    const { xchgId, drawId } = useParams();
+    const { logout } = useAuth0();
 
-const DrawPage = ({
-    draws,
-    giftExchanges,
-    participants,
-    restrictions,
-    addNewParticipant,
-    onDelete,
-    updateMultParticipants,
-}) => {
-    const { userId, xchgId, drawId } = useParams();
-
-    const [curDraw, setCurDraw] = useState([]);
-    const [curExchange, setCurExchange] = useState([]);
-    const [curParticipants, setCurParticipants] = useState([]);
-    const [pyParticipants, setPyParticipants] = useState([]);
-    const [curRestrictions, setCurRestrictions] = useState([]);
-
+    const [curDraw, setCurDraw] = useState();
+    const [curExchange, setCurExchange] = useState();
     const [showNewPartForm, setShowNewPartForm] = useState(false);
 
     useEffect(() => {
-        setCurDraw(
-            draws.filter(
-                (draw) =>
-                    draw.userId === userId &&
-                    draw.giftExchangeId === xchgId &&
-                    draw.id === drawId
-            )
-        );
-    }, [draws]);
+        if (userData) {
+            const giftExchanges = userData.giftExchanges;
+            const foundExchange = giftExchanges.find((exchange) => exchange._id === xchgId);
 
-    useEffect(() => {
-        setCurExchange(
-            giftExchanges.filter(
-                (exchange) =>
-                    exchange.userId === userId && exchange.id === xchgId
-            )
-        );
-    }, [giftExchanges]);
-
-    useEffect(() => {
-        setCurParticipants(
-            participants.filter(
-                (participant) =>
-                    participant.userId === userId &&
-                    participant.giftExchangeId === xchgId &&
-                    participant.drawId === drawId
-            )
-        );
-    }, [participants]);
-
-    useEffect(() => {
-        setCurRestrictions(
-            restrictions.filter(
-                (restriction) =>
-                    restriction.userId === userId &&
-                    restriction.giftExchangeId === xchgId &&
-                    restriction.drawId === drawId
-            )
-        );
-    }, [restrictions]);
-
-    useEffect(() => {
-        // We need pyParticipants to be an array of the
-        // curParticipants that also participated last year.
-        if (curParticipants[0] && curDraw[0]) {
-            const pyPartArray = [];
-
-            curParticipants.forEach((part) => pyPartArray.push([]));
-
-            const priorYear = curDraw[0].year - 1;
-
-            // look in draws to see if one exists for current user/exchange/year
-            const pyDraw = draws.find(
-                (draw) =>
-                    draw.userId === userId &&
-                    draw.giftExchangeId === xchgId &&
-                    draw.year === priorYear
-            );
-
-            let pyParts = [];
-
-            // get all users from pyDraw if there is a pyDraw
-            if (pyDraw) {
-                pyParts = participants.filter(
-                    (participant) => participant.drawId === pyDraw.id
-                );
-            }
-
-            setPyParticipants(pyParts);
+            setCurExchange(foundExchange);
+            setCurDraw(foundExchange.draws.find((draw) => draw._id === drawId));
         }
-    }, [curDraw, draws, participants]);
+    }, [userData]);
 
     const generateHandler = async () => {
-        const res_obj = generate_arrays(
-            curParticipants,
-            pyParticipants,
-            curRestrictions
-        );
+        // Generates the secret drawing and updates the participant's in the database with their secret drawing.
 
+        const pyDraw = curExchange.draws.find((draw) => draw.year === curDraw.year - 1);
+        const pyParticipants = pyDraw ? pyDraw.participants : [];
+
+        const res_obj = generate_arrays(curDraw.participants, pyParticipants);
         const { part_names, part_ids, valid_draws } = res_obj;
+        const secretDrawResult = generate_secret_draw({ part_names, part_ids, valid_draws }, 100);
 
-        const secretDrawResult = generate_secret_draw(
-            { part_names, part_ids, valid_draws },
-            100
-        );
+        if (!secretDrawResult.cleanDraw) {
+            alert(
+                "Note: A clean drawing was not possible. A user may have drawn a restriction, a prior year draw, or themselves. " +
+                    "You can try again by clicking Generate Drawing. If multiple attemps are unsuccessful, you may want to reduce " +
+                    " restrictions or add more participants!"
+            );
+        }
 
-        updateMultParticipants(secretDrawResult.draw);
+        for (const drawResult of secretDrawResult.draw) {
+            updateParticipant({
+                userId: userData._id,
+                giftExchangeId: xchgId,
+                drawingId: drawId,
+                participantId: drawResult.id,
+                updates: { secretDraw: drawResult.secretDraw },
+            });
+        }
     };
 
-    const callEmailMicroservice = async (emails) => {
+    const callEmailMicroservice = async (emailObjs) => {
         // takes an array of email objects and sends an email for each
         console.log("Sending emails!");
-
-        if (emails.length) {
-            for (const email of emails) {
+        if (emailObjs.length) {
+            for (const emailObj of emailObjs) {
                 const emailReqObj = {
                     senderEmail: santaEmail,
                     password: santaPassword,
                     senderName: "Secret Santa",
                     subject: "Your Secret Santa Gift Recipient!",
-                    body: `You are getting ${email.secretDraw} a gift!`,
+                    body: `You are getting ${emailObj.secretDraw} a gift!`,
                     htmlTemplate: "Placeholder HTML Template",
                     recipients: [
                         {
-                            name: `${email.name}`,
-                            email: `${email.email}`,
+                            name: `${emailObj.name}`,
+                            email: `${emailObj.email}`,
                         },
                     ],
                 };
-
                 try {
-                    const res = await fetch(
-                        `https://cryptic-basin-36672.herokuapp.com/email`,
-                        {
-                            method: "POST",
-                            headers: { "Content-type": "application/json" },
-                            body: JSON.stringify(emailReqObj),
-                        }
-                    );
+                    const res = await fetch(emailMicroserviceUrl, {
+                        method: "POST",
+                        headers: { "Content-type": "application/json" },
+                        body: JSON.stringify(emailReqObj),
+                    });
                     console.log(res);
                 } catch (e) {
                     console.log(e);
                 }
             }
         }
-
         console.log("Emails sent!");
     };
 
@@ -165,8 +98,8 @@ const DrawPage = ({
         const emails = [];
         let count = 0;
 
-        if (curParticipants[0]) {
-            for (const participant of curParticipants) {
+        if (curDraw.participants.length > 0) {
+            for (const participant of curDraw.participants) {
                 if (participant.email && participant.secretDraw) {
                     count += 1;
                     emails.push({
@@ -190,7 +123,6 @@ const DrawPage = ({
             // use emails array (has attributes name, email, and secretDraw)
             // alert that the users were emailed
             callEmailMicroservice(emails);
-
             console.log(
                 "Request to send emails has been sent! Check with participants to make sure they received their emails!"
             );
@@ -206,25 +138,21 @@ const DrawPage = ({
     return (
         <>
             <Breadcrumb className="small">
-                <Link className="breadcrumb-item" to={`/${userId}`}>
+                <Link className="breadcrumb-item" to={"/giftexchanges"}>
                     Gift Exchanges
                 </Link>
-                <Link className="breadcrumb-item" to={`/${userId}/${xchgId}`}>
-                    {curExchange[0] && curExchange[0].name}
+                <Link className="breadcrumb-item" to={`/giftexchanges/${xchgId}`}>
+                    {curExchange && curExchange.name}
                 </Link>
-                <Breadcrumb.Item active>
-                    {curDraw[0] && curDraw[0].year} Drawing
-                </Breadcrumb.Item>
+                <Breadcrumb.Item active>{curDraw && curDraw.year} Drawing</Breadcrumb.Item>
             </Breadcrumb>
 
-            <Link to="/">
-                <Button variant="warning">Logout</Button>
-            </Link>
+            <Button variant="warning" onClick={() => logout({ returnTo: window.location.origin })}>
+                Logout
+            </Button>
 
-            <h1 className="font-weight-bold">
-                {curDraw[0] && curDraw[0].year} Drawing
-            </h1>
-            <h4>{curExchange[0] && curExchange[0].name}</h4>
+            <h1 className="font-weight-bold">{curDraw && curDraw.year} Drawing</h1>
+            <h4>{curExchange && curExchange.name}</h4>
 
             <Table>
                 <thead>
@@ -237,79 +165,82 @@ const DrawPage = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {curParticipants.map((participant, id) => {
-                        return (
-                            <ParticipantRow
-                                name={participant.name}
-                                email={participant.email}
-                                secretDraw={participant.secretDraw}
-                                participantId={participant.id}
-                                onDelete={onDelete}
-                                key={id}
-                            />
-                        );
-                    })}
+                    {curDraw &&
+                        curDraw.participants.map((participant, id) => {
+                            return (
+                                <ParticipantRow
+                                    name={participant.name}
+                                    email={participant.email}
+                                    secretDraw={participant.secretDraw}
+                                    participantId={participant._id}
+                                    userId={userData._id}
+                                    onDelete={onDelete}
+                                    key={id}
+                                />
+                            );
+                        })}
                 </tbody>
             </Table>
 
-            <Link to={`/${userId}/${xchgId}`}>
+            <Link to={`/giftexchanges/${xchgId}`}>
                 <Button variant="secondary">Back</Button>
             </Link>
 
-            {curExchange[0] && showNewPartForm ? (
+            {curExchange && showNewPartForm ? (
                 <NewPartForm
-                    drawYear={curDraw[0].year}
+                    userData={userData}
+                    curDraw={curDraw}
+                    drawYear={curDraw.year}
                     showNewPartForm={showNewPartForm}
                     setShowNewPartForm={setShowNewPartForm}
                     addNewParticipant={addNewParticipant}
                 />
             ) : (
-                <Button onClick={() => setShowNewPartForm(!showNewPartForm)}>
-                    Add Participant
-                </Button>
+                <Button onClick={() => setShowNewPartForm(!showNewPartForm)}>Add Participant</Button>
             )}
 
-            <ButtonGroup>
-                <Button variant="warning" onClick={() => generateHandler()}>
-                    Generate Drawing
-                </Button>
-
-                <OverlayTrigger
-                    placement="top"
-                    overlay={
-                        <Tooltip id={"tooltip-top"}>
-                            Click 'Generate Drawing' to Randomize the recipient
-                            for each participant! A warning will appear
-                            notifying you if a clean drawing was not possible.
-                        </Tooltip>
-                    }
-                >
-                    <Button variant="secondary">
-                        <FaQuestionCircle />
+            {curDraw && (
+                <ButtonGroup>
+                    <Button variant="warning" onClick={() => generateHandler()}>
+                        Generate Drawing
                     </Button>
-                </OverlayTrigger>
-            </ButtonGroup>
 
-            <ButtonGroup>
-                <Button variant="danger" onClick={() => emailHandler()}>
-                    Email Participants
-                </Button>
-                <OverlayTrigger
-                    placement="top"
-                    overlay={
-                        <Tooltip id={"tooltip-top"}>
-                            Click 'Email Participants' to notify all
-                            participants who they are getting a gift for! You
-                            will have to accept a confirmation before emails go
-                            out.
-                        </Tooltip>
-                    }
-                >
-                    <Button variant="secondary">
-                        <FaQuestionCircle />
+                    <OverlayTrigger
+                        placement="top"
+                        overlay={
+                            <Tooltip id={"tooltip-top"}>
+                                Click 'Generate Drawing' to Randomize the recipient for each participant! A warning will
+                                appear notifying you if a clean drawing was not possible.
+                            </Tooltip>
+                        }
+                    >
+                        <Button variant="secondary">
+                            <FaQuestionCircle />
+                        </Button>
+                    </OverlayTrigger>
+                </ButtonGroup>
+            )}
+
+            {curDraw && (
+                <ButtonGroup>
+                    <Button variant="danger" onClick={() => emailHandler()}>
+                        Email Participants
                     </Button>
-                </OverlayTrigger>
-            </ButtonGroup>
+                    <OverlayTrigger
+                        placement="top"
+                        overlay={
+                            <Tooltip id={"tooltip-top"}>
+                                Click 'Email Participants' to notify all participants who they are getting a gift for!
+                                You will have to accept a confirmation before emails go out.
+                            </Tooltip>
+                        }
+                    >
+                        <Button variant="secondary">
+                            <FaQuestionCircle />
+                        </Button>
+                    </OverlayTrigger>
+                </ButtonGroup>
+            )}
         </>
     );
 };

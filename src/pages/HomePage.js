@@ -1,12 +1,11 @@
 import Button from "react-bootstrap/Button";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
 
-const santaLogo = require("../assets/santa-logo.png");
-
-const HomePage = ({ userId }) => {
-    const { user, isAuthenticated, loginWithRedirect } = useAuth0();
-
-    console.log({ user });
+const HomePage = () => {
+    const santaLogo = require("../assets/santa-logo.png");
+    const { user, isLoading, loginWithRedirect, logout } = useAuth0();
+    const navigate = useNavigate();
 
     return (
         <div className="container">
@@ -17,9 +16,11 @@ const HomePage = ({ userId }) => {
                     <h1 className="font-weight-bold">secretSanta</h1>
                     <h4>gift exchange manager</h4>
 
-                    {!isAuthenticated && (
-                        <Button onClick={() => loginWithRedirect()}>
-                            Login
+                    {!isLoading && !user && <Button onClick={() => loginWithRedirect()}>Login</Button>}
+                    {!isLoading && user && <Button onClick={() => navigate("/giftexchanges")}>Gift Exchanges</Button>}
+                    {!isLoading && user && (
+                        <Button variant="warning" onClick={() => logout()}>
+                            Logout
                         </Button>
                     )}
                 </div>

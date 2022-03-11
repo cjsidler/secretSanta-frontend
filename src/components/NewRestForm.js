@@ -2,13 +2,8 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Form, Stack, Button } from "react-bootstrap";
 
-const NewRestForm = ({
-    drawYear,
-    setShowNewRestForm,
-    showNewRestForm,
-    addNewRestriction,
-}) => {
-    const { userId, xchgId, drawId, participantId } = useParams();
+const NewRestForm = ({ userData, setShowNewRestForm, showNewRestForm, addNewRestriction }) => {
+    const { xchgId, drawId, participantId } = useParams();
 
     const [newRestName, setNewRestName] = useState("");
 
@@ -21,12 +16,11 @@ const NewRestForm = ({
         }
 
         const newRestriction = {
-            name: newRestName,
-            participantId: participantId,
-            year: drawYear,
+            userId: userData._id,
             giftExchangeId: xchgId,
-            userId: userId,
-            drawId: drawId,
+            drawingId: drawId,
+            participantId: participantId,
+            restrictionName: newRestName,
         };
 
         addNewRestriction(newRestriction);
@@ -39,19 +33,11 @@ const NewRestForm = ({
         <Form onSubmit={onSubmit}>
             <Form.Group className="mb-3" controlId="newRestrictionName">
                 <Form.Label>New restriction name:</Form.Label>
-                <Form.Control
-                    type="text"
-                    placeholder="Enter name"
-                    onChange={(e) => setNewRestName(e.target.value)}
-                />
+                <Form.Control type="text" placeholder="Enter name" onChange={(e) => setNewRestName(e.target.value)} />
             </Form.Group>
 
             <Stack direction="horizontal" gap={5}>
-                <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={() => setShowNewRestForm(!showNewRestForm)}
-                >
+                <Button variant="secondary" type="button" onClick={() => setShowNewRestForm(!showNewRestForm)}>
                     Cancel
                 </Button>
 

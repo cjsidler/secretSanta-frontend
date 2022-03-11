@@ -3,12 +3,7 @@ import Button from "react-bootstrap/Button";
 import Stack from "react-bootstrap/Stack";
 import { useState } from "react";
 
-const NewExchangeForm = ({
-    user,
-    showNewExchange,
-    setShowNewExchange,
-    addExchange,
-}) => {
+const NewExchangeForm = ({ userData, showNewExchange, setShowNewExchange, addExchange }) => {
     const [newExchangeName, setNewExchangeName] = useState("");
 
     const onSubmit = (e) => {
@@ -19,12 +14,21 @@ const NewExchangeForm = ({
             return;
         }
 
-        const newExchange = {
-            name: newExchangeName,
-            userId: user.id,
-        };
+        // if gift exchange name already exists, alert and return
+        const giftExchangeExists = userData.giftExchanges.some((exchange) => {
+            if (exchange.name === newExchangeName) {
+                return true;
+            } else {
+                return false;
+            }
+        });
 
-        addExchange(newExchange);
+        if (giftExchangeExists) {
+            alert("A gift exchange by that name already exists! Please choose a new name!");
+            return;
+        }
+
+        addExchange(newExchangeName);
 
         setShowNewExchange(!showNewExchange);
         setNewExchangeName("");
@@ -42,11 +46,7 @@ const NewExchangeForm = ({
             </Form.Group>
 
             <Stack direction="horizontal" gap={5}>
-                <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={() => setShowNewExchange(!showNewExchange)}
-                >
+                <Button variant="secondary" type="button" onClick={() => setShowNewExchange(!showNewExchange)}>
                     Cancel
                 </Button>
 

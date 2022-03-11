@@ -5,18 +5,14 @@ import DrawingRow from "../components/DrawingRow";
 import Breadcrumb from "react-bootstrap/Breadcrumb";
 import { useEffect, useState } from "react";
 import { FaEdit, FaSave } from "react-icons/fa";
+import { useAuth0 } from "@auth0/auth0-react";
 
-const ExchangePage = ({
-    draws,
-    giftExchanges,
-    onDelete,
-    addNewDrawing,
-    updateGiftExchange,
-}) => {
-    const { userId, xchgId } = useParams();
+const ExchangePage = ({ userData, onDelete, addNewDrawing, updateGiftExchange }) => {
+    const { xchgId } = useParams();
+    const { logout } = useAuth0();
 
-    const [curDraws, setCurDraws] = useState([]);
-    const [curExchange, setCurExchange] = useState([]);
+    const [curExchange, setCurExchange] = useState();
+
     const [editName, setEditName] = useState(false);
     const [newExchangeName, setNewExchangeName] = useState("");
 
@@ -24,37 +20,34 @@ const ExchangePage = ({
         const curYear = new Date().getFullYear();
 
         // see if drawing for current year already exists
-        if (curDraws.some((draw) => draw.year === curYear)) {
+        if (curExchange.draws.some((draw) => draw.year === curYear)) {
             alert("A drawing for the current year already exists!");
             return;
         }
 
+        //userId, giftExchangeId, drawingYear
+
         const newDrawing = {
-            year: curYear,
-            giftExchangeId: xchgId,
-            userId: userId,
+            drawingYear: curYear,
+            giftExchangeId: curExchange._id,
+            userId: userData._id,
         };
 
         addNewDrawing(newDrawing);
     };
 
-    useEffect(() => {
-        setCurDraws(
-            draws.filter(
-                (draw) =>
-                    draw.userId === userId && draw.giftExchangeId === xchgId
-            )
-        );
-        setCurExchange(
-            giftExchanges.filter(
-                (exchange) =>
-                    exchange.userId === userId && exchange.id === xchgId
-            )
-        );
-    }, [draws, giftExchanges]);
+    console.log("Exchange Page: ", { userData });
 
     useEffect(() => {
-        curExchange[0] && setNewExchangeName(curExchange[0].name);
+        if (userData) {
+            const giftExchanges = userData.giftExchanges;
+
+            setCurExchange(giftExchanges.find((exchange) => exchange._id === xchgId));
+        }
+    }, [userData]);
+
+    useEffect(() => {
+        curExchange && setNewExchangeName(curExchange.name);
     }, [curExchange]);
 
     const updateNameHandler = () => {
@@ -63,9 +56,11 @@ const ExchangePage = ({
             return;
         }
 
-        if (curExchange[0]) {
-            updateGiftExchange(curExchange[0].id, {
-                name: newExchangeName,
+        if (curExchange) {
+            updateGiftExchange({
+                userId: userData._id,
+                giftExchangeId: curExchange._id,
+                newName: newExchangeName,
             });
             alert("Exchange name updated!");
         } else {
@@ -78,20 +73,18 @@ const ExchangePage = ({
     return (
         <>
             <Breadcrumb className="small">
-                <Link className="breadcrumb-item" to={`/${userId}`}>
+                <Link className="breadcrumb-item" to={"/giftexchanges"}>
                     Gift Exchanges
                 </Link>
-                <Breadcrumb.Item active>
-                    {curExchange[0] && curExchange[0].name}
-                </Breadcrumb.Item>
+                <Breadcrumb.Item active>{curExchange && curExchange.name}</Breadcrumb.Item>
             </Breadcrumb>
 
-            <Link to="/">
-                <Button variant="warning">Logout</Button>
-            </Link>
+            <Button variant="warning" onClick={() => logout({ returnTo: window.location.origin })}>
+                Logout
+            </Button>
 
             <h1 className="font-weight-bold">
-                {curExchange[0] && curExchange[0].name}
+                {curExchange && curExchange.name}
                 {editName ? (
                     <Button
                         variant="warning"
@@ -114,9 +107,7 @@ const ExchangePage = ({
             </h1>
             {editName && (
                 <>
-                    <label htmlFor="newExchangeField">
-                        Edit exchange name:
-                    </label>
+                    <label htmlFor="newExchangeField">Edit exchange name:</label>
                     <input
                         id="newExchangeField"
                         type="text"
@@ -138,14 +129,15 @@ const ExchangePage = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {curDraws[0] &&
-                        curDraws
+                    {curExchange &&
+                        curExchange.draws
                             .sort((a, b) => b.year - a.year)
                             .map((draw, i) => {
                                 return (
                                     <DrawingRow
+                                        userData={userData}
                                         year={draw.year}
-                                        id={draw.id}
+                                        id={draw._id}
                                         key={i}
                                         onDelete={onDelete}
                                     />
@@ -154,7 +146,7 @@ const ExchangePage = ({
                 </tbody>
             </Table>
 
-            <Link to={`/${userId}`}>
+            <Link to={"/giftexchanges"}>
                 <Button variant="secondary">Back</Button>
             </Link>
 

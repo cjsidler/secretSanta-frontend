@@ -2,14 +2,8 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Button from "react-bootstrap/Button";
 import { useNavigate, useParams } from "react-router-dom";
 
-const ParticipantRow = ({
-    name,
-    email,
-    secretDraw,
-    participantId,
-    onDelete,
-}) => {
-    const { userId, xchgId, drawId } = useParams();
+const ParticipantRow = ({ name, email, secretDraw, participantId, userId, onDelete }) => {
+    const { xchgId, drawId } = useParams();
     const navigate = useNavigate();
 
     return (
@@ -20,11 +14,7 @@ const ParticipantRow = ({
             <td>
                 <Button
                     variant="warning"
-                    onClick={() =>
-                        navigate(
-                            `/${userId}/${xchgId}/${drawId}/${participantId}`
-                        )
-                    }
+                    onClick={() => navigate(`/giftexchanges/${xchgId}/${drawId}/${participantId}`)}
                 >
                     <FaEdit />
                 </Button>
@@ -32,7 +22,7 @@ const ParticipantRow = ({
             <td>
                 <Button
                     variant="danger"
-                    onClick={() => onDelete(participantId)}
+                    onClick={() => onDelete({ userId, giftExchangeId: xchgId, drawingId: drawId, participantId })}
                 >
                     <FaTrashAlt />
                 </Button>
