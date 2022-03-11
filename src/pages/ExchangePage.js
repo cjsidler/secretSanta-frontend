@@ -36,8 +36,6 @@ const ExchangePage = ({ userData, onDelete, addNewDrawing, updateGiftExchange })
         addNewDrawing(newDrawing);
     };
 
-    console.log("Exchange Page: ", { userData });
-
     useEffect(() => {
         if (userData) {
             const giftExchanges = userData.giftExchanges;
