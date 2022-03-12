@@ -6,9 +6,9 @@ const GiftExchangeRow = ({ userData, name, exchange, onDelete }) => {
     const navigate = useNavigate();
 
     return (
-        <tr>
+        <tr className="justify-content-center align-middle">
             <td>
-                <p>{name}</p>
+                <p className="mb-0 p-2">{name}</p>
             </td>
             <td>
                 <Button variant="warning" onClick={() => navigate(`/giftexchanges/${exchange._id}`)}>

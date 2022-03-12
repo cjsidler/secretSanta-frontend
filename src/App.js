@@ -16,7 +16,6 @@ function App() {
     const dbUrl = process.env.REACT_APP_DB_URL;
 
     const [userData, setUserData] = useState();
-    const [participants, setParticipants] = useState([]);
 
     useEffect(() => {
         if (user) {
@@ -208,7 +207,6 @@ function App() {
                                     addNewParticipant={addNewParticipant}
                                     onDelete={removeParticipant}
                                     updateParticipant={updateParticipant}
-                                    setParticipants={setParticipants}
                                 />
                             }
                         />
