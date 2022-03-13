@@ -35,7 +35,7 @@ const NewExchangeForm = ({ userData, showNewExchange, setShowNewExchange, addExc
     };
 
     return (
-        <Form onSubmit={onSubmit}>
+        <Form className="mb-5" onSubmit={onSubmit}>
             <Form.Group className="mb-3" controlId="newExchangeName">
                 <Form.Label>New Gift Exchange:</Form.Label>
                 <Form.Control

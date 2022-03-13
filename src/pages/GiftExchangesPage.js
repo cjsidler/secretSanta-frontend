@@ -24,7 +24,7 @@ const GiftExchangesPage = ({ userData, addExchange, onDelete }) => {
             <div className="container">
                 <div className="row">
                     <div className="col-3">
-                        <img src={santaLogo} style={{ width: "100%" }} alt="logo" />
+                        <img src={santaLogo} style={{ width: "80%" }} alt="logo" />
                     </div>
                     <div className="col-6"></div>
                     <div className="col-3">
@@ -93,7 +93,9 @@ const GiftExchangesPage = ({ userData, addExchange, onDelete }) => {
                     addExchange={addExchange}
                 />
             ) : (
-                <Button onClick={() => setShowNewExchange(!showNewExchange)}>New Exchange</Button>
+                <Button className="mb-5" onClick={() => setShowNewExchange(!showNewExchange)}>
+                    New Exchange
+                </Button>
             )}
         </>
     );
