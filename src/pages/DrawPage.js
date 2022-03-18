@@ -1,21 +1,21 @@
 import Button from "react-bootstrap/Button";
-import ButtonGroup from "react-bootstrap/ButtonGroup";
-import { Table, Tooltip, OverlayTrigger } from "react-bootstrap";
+import { Table, Tooltip, OverlayTrigger, Row, Col } from "react-bootstrap";
 import Breadcrumb from "react-bootstrap/Breadcrumb";
 import { Link, useParams } from "react-router-dom";
 import ParticipantRow from "../components/ParticipantRow";
 import NewPartForm from "../components/NewPartForm";
+import Heading from "../components/Heading";
 import { FaQuestionCircle } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { generate_arrays, generate_secret_draw } from "../helpers/generator";
-import { useAuth0 } from "@auth0/auth0-react";
+import PageImage from "../components/PageImage";
 
 const DrawPage = ({ userData, addNewParticipant, onDelete, updateParticipant }) => {
     const santaEmail = process.env.REACT_APP_SANTAGMAILLOGIN;
     const santaPassword = process.env.REACT_APP_SANTAGMAILPASSWORD;
     const emailMicroserviceUrl = process.env.REACT_APP_EMAIL_MICROSERVICE_URL;
     const { xchgId, drawId } = useParams();
-    const { logout } = useAuth0();
+    const giftsHighFive = require("../assets/gifts-high-five.png");
 
     const [curDraw, setCurDraw] = useState();
     const [curExchange, setCurExchange] = useState();
@@ -116,7 +116,6 @@ const DrawPage = ({ userData, addNewParticipant, onDelete, updateParticipant }) 
         ) {
             // fetch POST request to https://cryptic-basin-36672.herokuapp.com/email
             // use emails array (has attributes name, email, and secretDraw)
-            // alert that the users were emailed
             callEmailMicroservice(emails);
         } else {
             // alert that the users were not emailed
@@ -128,110 +127,153 @@ const DrawPage = ({ userData, addNewParticipant, onDelete, updateParticipant }) 
 
     return (
         <>
-            <Breadcrumb className="small">
-                <Link className="breadcrumb-item" to={"/giftexchanges"}>
-                    Gift Exchanges
-                </Link>
-                <Link className="breadcrumb-item" to={`/giftexchanges/${xchgId}`}>
-                    {curExchange && curExchange.name}
-                </Link>
-                <Breadcrumb.Item active>{curDraw && curDraw.year} Drawing</Breadcrumb.Item>
-            </Breadcrumb>
+            <div className="container">
+                <Heading />
 
-            <Button variant="warning" onClick={() => logout({ returnTo: window.location.origin })}>
-                Logout
-            </Button>
+                <Row>
+                    <div className="col-1"></div>
+                    <div className="col-10">
+                        <Breadcrumb className="small" style={{ fontSize: "16px" }}>
+                            <Link className="breadcrumb-item" to={"/giftexchanges"}>
+                                Gift Exchanges
+                            </Link>
+                            <Link className="breadcrumb-item" to={`/giftexchanges/${xchgId}`}>
+                                {curExchange && curExchange.name}
+                            </Link>
+                            <Breadcrumb.Item active>{curDraw && curDraw.year} Drawing</Breadcrumb.Item>
+                        </Breadcrumb>
+                    </div>
+                    <div className="col-1"></div>
+                </Row>
 
-            <h1 className="font-weight-bold">{curDraw && curDraw.year} Drawing</h1>
-            <h4>{curExchange && curExchange.name}</h4>
+                <PageImage image={giftsHighFive} />
 
-            <Table>
-                <thead>
-                    <tr>
-                        <th>Participant</th>
-                        <th>Email</th>
-                        <th>Recipient</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {curDraw &&
-                        curDraw.participants.map((participant, id) => {
-                            return (
-                                <ParticipantRow
-                                    name={participant.name}
-                                    email={participant.email}
-                                    secretDraw={participant.secretDraw}
-                                    participantId={participant._id}
-                                    userId={userData._id}
-                                    onDelete={onDelete}
-                                    key={id}
-                                />
-                            );
-                        })}
-                </tbody>
-            </Table>
+                <h1 style={{ fontWeight: 700 }}>{curDraw && curDraw.year} Drawing</h1>
+                <h4>{curExchange && curExchange.name}</h4>
 
-            <Link to={`/giftexchanges/${xchgId}`}>
-                <Button variant="secondary">Back</Button>
-            </Link>
+                <div className="row mt-4">
+                    <div className="col-1"></div>
+                    <div className="col-10">
+                        <Table className="table-bordered" style={{ color: "#391400", fontSize: "24px" }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ paddingBottom: "0" }}>
+                                        <p style={{ margin: "0", padding: "0" }}>Participant</p>
+                                    </th>
+                                    <th style={{ paddingBottom: "0" }}>
+                                        <p style={{ margin: "0", padding: "0" }}>Email</p>
+                                    </th>
+                                    <th style={{ paddingBottom: "0" }}>
+                                        <p style={{ margin: "0", padding: "0" }}>Recipient</p>
+                                    </th>
+                                    <th style={{ paddingBottom: "0" }}>
+                                        <p style={{ margin: "0", padding: "0" }}>Edit</p>
+                                    </th>
+                                    <th style={{ paddingBottom: "0" }}>
+                                        <p style={{ margin: "0", padding: "0" }}>Delete</p>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {curDraw &&
+                                    curDraw.participants.map((participant, id) => {
+                                        return (
+                                            <ParticipantRow
+                                                name={participant.name}
+                                                email={participant.email}
+                                                secretDraw={participant.secretDraw}
+                                                participantId={participant._id}
+                                                userId={userData._id}
+                                                onDelete={onDelete}
+                                                key={id}
+                                            />
+                                        );
+                                    })}
+                            </tbody>
+                        </Table>
+                    </div>
+                    <div className="col-1"></div>
+                </div>
 
-            {curExchange && showNewPartForm ? (
-                <NewPartForm
-                    userData={userData}
-                    curDraw={curDraw}
-                    drawYear={curDraw.year}
-                    showNewPartForm={showNewPartForm}
-                    setShowNewPartForm={setShowNewPartForm}
-                    addNewParticipant={addNewParticipant}
-                />
-            ) : (
-                <Button onClick={() => setShowNewPartForm(!showNewPartForm)}>Add Participant</Button>
-            )}
+                <div className="row mt-4">
+                    <div className="col-3"></div>
+                    <div className="col-6">
+                        {curExchange && showNewPartForm ? (
+                            <NewPartForm
+                                userData={userData}
+                                curDraw={curDraw}
+                                drawYear={curDraw.year}
+                                showNewPartForm={showNewPartForm}
+                                setShowNewPartForm={setShowNewPartForm}
+                                addNewParticipant={addNewParticipant}
+                            />
+                        ) : (
+                            <Row>
+                                <Col>
+                                    <Link to={`/giftexchanges/${xchgId}`}>
+                                        <Button variant="warning">Back</Button>
+                                    </Link>
 
-            {curDraw && (
-                <ButtonGroup>
-                    <Button variant="warning" onClick={() => generateHandler()}>
-                        Generate Drawing
-                    </Button>
+                                    <Button
+                                        style={{ color: "white", fontWeight: "bold", marginLeft: "25px" }}
+                                        onClick={() => setShowNewPartForm(!showNewPartForm)}
+                                    >
+                                        Add Participant
+                                    </Button>
+                                </Col>
+                            </Row>
+                        )}
+                    </div>
+                    <div className="col-3"></div>
+                </div>
 
-                    <OverlayTrigger
-                        placement="top"
-                        overlay={
-                            <Tooltip id={"tooltip-top"}>
-                                Click 'Generate Drawing' to Randomize the recipient for each participant! A warning will
-                                appear notifying you if a clean drawing was not possible.
-                            </Tooltip>
-                        }
-                    >
-                        <Button variant="secondary">
-                            <FaQuestionCircle />
-                        </Button>
-                    </OverlayTrigger>
-                </ButtonGroup>
-            )}
+                {curDraw && (
+                    <Row className="mt-5">
+                        <Col>
+                            <Button style={{ color: "white", fontWeight: "bold" }} onClick={() => generateHandler()}>
+                                Generate Drawing
+                            </Button>
 
-            {curDraw && (
-                <ButtonGroup>
-                    <Button variant="danger" onClick={() => emailHandler()}>
-                        Email Participants
-                    </Button>
-                    <OverlayTrigger
-                        placement="top"
-                        overlay={
-                            <Tooltip id={"tooltip-top"}>
-                                Click 'Email Participants' to notify all participants who they are getting a gift for!
-                                You will have to accept a confirmation before emails go out.
-                            </Tooltip>
-                        }
-                    >
-                        <Button variant="secondary">
-                            <FaQuestionCircle />
-                        </Button>
-                    </OverlayTrigger>
-                </ButtonGroup>
-            )}
+                            <OverlayTrigger
+                                placement="top"
+                                overlay={
+                                    <Tooltip id={"tooltip-top"}>
+                                        Click 'Generate Drawing' to Randomize the recipient for each participant! A
+                                        warning will appear notifying you if a clean drawing was not possible.
+                                    </Tooltip>
+                                }
+                            >
+                                <Button variant="light" style={{ color: "#80695c" }}>
+                                    <FaQuestionCircle />
+                                </Button>
+                            </OverlayTrigger>
+                        </Col>
+                    </Row>
+                )}
+
+                {curDraw && (
+                    <Row className="mt-3 mb-5">
+                        <Col>
+                            <Button style={{ color: "white", fontWeight: "bold" }} onClick={() => emailHandler()}>
+                                Email Participants
+                            </Button>
+                            <OverlayTrigger
+                                placement="top"
+                                overlay={
+                                    <Tooltip id={"tooltip-top"}>
+                                        Click 'Email Participants' to notify all participants who they are getting a
+                                        gift for! You will have to accept a confirmation before emails go out.
+                                    </Tooltip>
+                                }
+                            >
+                                <Button variant="light" style={{ color: "#80695c" }}>
+                                    <FaQuestionCircle />
+                                </Button>
+                            </OverlayTrigger>
+                        </Col>
+                    </Row>
+                )}
+            </div>
         </>
     );
 };

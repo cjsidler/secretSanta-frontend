@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import Form from "react-bootstrap/Form";
-import Breadcrumb from "react-bootstrap/Breadcrumb";
-import { Table } from "react-bootstrap";
-import { Stack, Button, Container } from "react-bootstrap";
+import { Stack, Button, Container, Form, Row, Breadcrumb } from "react-bootstrap";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import NewRestForm from "../components/NewRestForm";
+import { Table } from "react-bootstrap";
 import { FaTrashAlt } from "react-icons/fa";
+import NewRestForm from "../components/NewRestForm";
+import Heading from "../components/Heading";
+import PageImage from "../components/PageImage";
 
 const ParticipantPage = ({ userData, updateParticipant, addNewRestriction, onDelete }) => {
     const { xchgId, drawId, participantId } = useParams();
+    const badge = require("../assets/badge.png");
 
     const [curExchange, setCurExchange] = useState();
     const [curDraw, setCurDraw] = useState();
@@ -64,117 +65,158 @@ const ParticipantPage = ({ userData, updateParticipant, addNewRestriction, onDel
 
     return (
         <>
-            <Breadcrumb className="small">
-                <Link className="breadcrumb-item" to={"/giftexchanges"}>
-                    Gift Exchanges
-                </Link>
-                <Link className="breadcrumb-item" to={`/giftexchanges/${xchgId}`}>
-                    {curExchange && curExchange.name}
-                </Link>
-                <Link className="breadcrumb-item" to={`/giftexchanges/${xchgId}/${drawId}`}>
-                    {curDraw && `${curDraw.year.toString()} Drawing`}
-                </Link>
-
-                <Breadcrumb.Item active>{curParticipant && curParticipant.name}</Breadcrumb.Item>
-            </Breadcrumb>
             <Container>
-                <div className="col-sm"></div>
-                <div className="col-md">
-                    <h1>Edit Participant: {curParticipant && curParticipant.name}</h1>
+                <Heading />
 
-                    <Form onSubmit={onSubmit}>
-                        <Form.Group className="mb-3" controlId="newPartName">
-                            <Form.Label>Edit name:</Form.Label>
+                <Row>
+                    <div className="col-1"></div>
+                    <div className="col-10">
+                        <Breadcrumb className="small" style={{ fontSize: "16px" }}>
+                            <Link className="breadcrumb-item" to={"/giftexchanges"}>
+                                Gift Exchanges
+                            </Link>
+                            <Link className="breadcrumb-item" to={`/giftexchanges/${xchgId}`}>
+                                {curExchange && curExchange.name}
+                            </Link>
+                            <Link className="breadcrumb-item" to={`/giftexchanges/${xchgId}/${drawId}`}>
+                                {curDraw && curDraw.year} Drawing
+                            </Link>
+                            <Breadcrumb.Item active>{curParticipant && curParticipant.name}</Breadcrumb.Item>
+                        </Breadcrumb>
+                    </div>
+                    <div className="col-1"></div>
+                </Row>
 
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter name"
-                                value={partName}
-                                onChange={(e) => setPartName(e.target.value)}
+                <Row className="mt-3">
+                    <PageImage image={badge} />
+                </Row>
+
+                <Row className="mt-4">
+                    <div className="col">
+                        <h1 style={{ fontWeight: 700 }}>{curParticipant && curParticipant.name}</h1>
+                        <h4>Edit Participant</h4>
+
+                        <Row>
+                            <div className="col-2"></div>
+                            <div className="col-8">
+                                <Form onSubmit={onSubmit}>
+                                    <Form.Group className="mb-3" controlId="newPartName" style={{ textAlign: "left" }}>
+                                        <Form.Label>Name:</Form.Label>
+
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Enter name"
+                                            value={partName}
+                                            onChange={(e) => setPartName(e.target.value)}
+                                        />
+                                    </Form.Group>
+
+                                    <Form.Group className="mb-3" controlId="newPartName" style={{ textAlign: "left" }}>
+                                        <Form.Label>Email:</Form.Label>
+
+                                        <Form.Control
+                                            type="email"
+                                            placeholder="Enter email"
+                                            value={partEmail}
+                                            onChange={(e) => setPartEmail(e.target.value)}
+                                        />
+                                    </Form.Group>
+
+                                    <Stack direction="horizontal">
+                                        <div className="ms-auto"></div>
+                                        <Button
+                                            variant="warning"
+                                            type="button"
+                                            onClick={() => navigate(`/giftexchanges/${xchgId}/${drawId}`)}
+                                        >
+                                            Back
+                                        </Button>
+
+                                        <div className="ms-auto"></div>
+
+                                        <Button style={{ color: "white", fontWeight: "bold" }} type="submit">
+                                            Save
+                                        </Button>
+                                        <div className="ms-auto"></div>
+                                    </Stack>
+                                </Form>
+                            </div>
+                            <div className="col-2"></div>
+                        </Row>
+                    </div>
+                </Row>
+
+                <Row className="mt-4">
+                    <div className="col-2"></div>
+                    <div className="col-8">
+                        <span style={{ fontWeight: "bold", display: "inline" }}>Restrictions</span>
+                        <p style={{ fontWeight: "400", fontSize: "1rem" }}>
+                            Prevent {curParticipant && curParticipant.name} from drawing specific names in the gift
+                            exchange by adding restrictions here.
+                        </p>
+
+                        {curRestrictions.length > 0 ? (
+                            <Table className="table-bordered" style={{ color: "#391400", fontSize: "24px" }}>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Delete</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {curRestrictions.map((restriction, key) => {
+                                        return (
+                                            <tr key={key}>
+                                                <td>{restriction}</td>
+                                                <td>
+                                                    <Button
+                                                        variant="danger"
+                                                        onClick={() =>
+                                                            onDelete({
+                                                                userId: userData._id,
+                                                                giftExchangeId: xchgId,
+                                                                drawingId: drawId,
+                                                                participantId: participantId,
+                                                                restrictionName: restriction,
+                                                            })
+                                                        }
+                                                    >
+                                                        <FaTrashAlt />
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </Table>
+                        ) : (
+                            <p style={{ fontSize: "18px" }}>No restrictions currently.</p>
+                        )}
+                    </div>
+                    <div className="col-2"></div>
+                </Row>
+
+                <div className="row mt-4">
+                    <div className="col-3"></div>
+                    <div className="col-6">
+                        {showNewRestForm ? (
+                            <NewRestForm
+                                userData={userData}
+                                setShowNewRestForm={setShowNewRestForm}
+                                showNewRestForm={showNewRestForm}
+                                addNewRestriction={addNewRestriction}
                             />
-                        </Form.Group>
-                        <Form.Group className="mb-3" controlId="newPartName">
-                            <Form.Label>Edit email:</Form.Label>
-                            <Form.Control
-                                type="email"
-                                placeholder="Enter email"
-                                value={partEmail}
-                                onChange={(e) => setPartEmail(e.target.value)}
-                            />
-                        </Form.Group>
-
-                        <Stack direction="horizontal">
-                            <div className="ms-auto"></div>
+                        ) : (
                             <Button
-                                variant="secondary"
-                                type="button"
-                                onClick={() => navigate(`/giftexchanges/${xchgId}/${drawId}`)}
+                                style={{ color: "white", fontWeight: "bold", marginBottom: "40px" }}
+                                onClick={() => setShowNewRestForm(!showNewRestForm)}
                             >
-                                Back
+                                New Restriction
                             </Button>
-
-                            <div className="ms-auto"></div>
-
-                            <Button variant="warning" type="submit">
-                                Save
-                            </Button>
-                            <div className="ms-auto"></div>
-                        </Stack>
-                    </Form>
+                        )}
+                    </div>
+                    <div className="col-3"></div>
                 </div>
-                <div className="col-sm"></div>
-
-                <div className="col">
-                    <h5>Restrictions</h5>
-                    {curRestrictions.length > 0 ? (
-                        <Table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Delete</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {curRestrictions.map((restriction, key) => {
-                                    return (
-                                        <tr key={key}>
-                                            <td>{restriction}</td>
-                                            <td>
-                                                <Button
-                                                    variant="danger"
-                                                    onClick={() =>
-                                                        onDelete({
-                                                            userId: userData._id,
-                                                            giftExchangeId: xchgId,
-                                                            drawingId: drawId,
-                                                            participantId: participantId,
-                                                            restrictionName: restriction,
-                                                        })
-                                                    }
-                                                >
-                                                    <FaTrashAlt />
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </Table>
-                    ) : (
-                        <p>none</p>
-                    )}
-                </div>
-
-                {showNewRestForm ? (
-                    <NewRestForm
-                        userData={userData}
-                        setShowNewRestForm={setShowNewRestForm}
-                        showNewRestForm={showNewRestForm}
-                        addNewRestriction={addNewRestriction}
-                    />
-                ) : (
-                    <Button onClick={() => setShowNewRestForm(!showNewRestForm)}>New Restriction</Button>
-                )}
             </Container>
         </>
     );

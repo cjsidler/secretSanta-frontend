@@ -8,12 +8,18 @@ const ParticipantRow = ({ name, email, secretDraw, participantId, userId, onDele
 
     return (
         <tr>
-            <td>{name}</td>
-            <td>{email}</td>
-            <td>{secretDraw ? secretDraw : "?"}</td>
+            <td style={{ paddingBottom: 0 }}>
+                <p style={{ margin: 0 }}>{name}</p>
+            </td>
+            <td style={{ paddingBottom: 0 }}>
+                <p style={{ margin: 0 }}>{email}</p>
+            </td>
+            <td style={{ paddingBottom: 0 }}>
+                <p style={{ margin: 0 }}>{secretDraw ? secretDraw : "?"}</p>
+            </td>
             <td>
                 <Button
-                    variant="warning"
+                    style={{ color: "white" }}
                     onClick={() => navigate(`/giftexchanges/${xchgId}/${drawId}/${participantId}`)}
                 >
                     <FaEdit />
@@ -22,7 +28,10 @@ const ParticipantRow = ({ name, email, secretDraw, participantId, userId, onDele
             <td>
                 <Button
                     variant="danger"
-                    onClick={() => onDelete({ userId, giftExchangeId: xchgId, drawingId: drawId, participantId })}
+                    onClick={() => {
+                        window.confirm("Are you sure you want to delete this gift participant?") &&
+                            onDelete({ userId, giftExchangeId: xchgId, drawingId: drawId, participantId });
+                    }}
                 >
                     <FaTrashAlt />
                 </Button>

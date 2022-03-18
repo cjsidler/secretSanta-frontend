@@ -60,13 +60,13 @@ const NewPartForm = ({ userData, curDraw, showNewPartForm, setShowNewPartForm, a
             </Form.Group>
 
             <Stack direction="horizontal" gap={5}>
-                <Button variant="secondary" type="button" onClick={() => setShowNewPartForm(!showNewPartForm)}>
+                <Button variant="warning" type="button" onClick={() => setShowNewPartForm(!showNewPartForm)}>
                     Cancel
                 </Button>
 
                 <div className="ms-auto"></div>
 
-                <Button variant="primary" type="submit">
+                <Button type="submit" style={{ color: "white", fontWeight: "bold" }}>
                     Add
                 </Button>
             </Stack>
