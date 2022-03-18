@@ -20,11 +20,11 @@ const DrawingRow = ({ userData, id, year, onDelete }) => {
     return (
         <tr>
             <td>
-                <p>{year} Drawing</p>
+                <p style={{ margin: 0 }}>{year} Drawing</p>
             </td>
             <td>
                 <Button
-                    variant="warning"
+                    style={{ color: "white" }}
                     onClick={() => {
                         navigate(`/giftexchanges/${xchgId}/${id}`);
                     }}
@@ -34,9 +34,11 @@ const DrawingRow = ({ userData, id, year, onDelete }) => {
             </td>
             <td>
                 <Button
+                    style={{ color: "white" }}
                     variant="danger"
                     onClick={() => {
-                        onDelete({ userId: userData._id, giftExchangeId: xchgId, drawingId: id });
+                        window.confirm("Are you sure you want to delete this drawing?") &&
+                            onDelete({ userId: userData._id, giftExchangeId: xchgId, drawingId: id });
                     }}
                 >
                     <FaTrashAlt />

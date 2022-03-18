@@ -9,8 +9,6 @@ import ParticipantPage from "./pages/ParticipantPage";
 import ProtectedComponent from "./auth/ProtectedComponent";
 import { useAuth0 } from "@auth0/auth0-react";
 
-// TODO: Add window.confirm to all Deletes
-
 function App() {
     const { user } = useAuth0();
     const dbUrl = process.env.REACT_APP_DB_URL;
@@ -122,7 +120,6 @@ function App() {
 
     // Remove a participant
     const removeParticipant = async (deleteObj) => {
-        console.log({ deleteObj });
         await fetch(dbUrl + "/participant", {
             method: "DELETE",
             headers: { "Content-type": "application/json" },

@@ -1,9 +1,7 @@
 const shuffle = require("shuffle-array");
 
 export function generate_arrays(participants, pyParticipants) {
-    // participants will be a array of participant objects from JSON server
-    // pyParticipants will be a array of participant objects from JSON server
-    // restrictions will be a array of restriction objects from JSON server
+    // participants and pyParticipants will be arrays of participant objects from MongoDB
 
     // generate an array of names of participants
     const part_names = participants.map((participant) => participant.name);

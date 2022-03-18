@@ -1,6 +1,8 @@
 import Button from "react-bootstrap/Button";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from "react-router-dom";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 
 const HomePage = () => {
     const santaLogo = require("../assets/santa-logo.png");
@@ -8,25 +10,62 @@ const HomePage = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="container">
-            <div className="row">
-                <div className="col-sm"></div>
-                <div className="col-sm">
-                    <img src={santaLogo} className="App-logo" alt="logo" />
-                    <h1 className="font-weight-bold">secretSanta</h1>
-                    <h4>gift exchange manager</h4>
+        <>
+            <Row>
+                <Col>
+                    <img src={santaLogo} className="App-logo" style={{ height: "425px" }} alt="logo" />
 
-                    {!isLoading && !user && <Button onClick={() => loginWithRedirect()}>Login</Button>}
-                    {!isLoading && user && <Button onClick={() => navigate("/giftexchanges")}>Gift Exchanges</Button>}
-                    {!isLoading && user && (
-                        <Button variant="warning" onClick={() => logout()}>
-                            Logout
-                        </Button>
-                    )}
-                </div>
-                <div className="col-sm"></div>
-            </div>
-        </div>
+                    <h1 className="mt-4 mb-0" style={{ fontWeight: "800", fontSize: "50px" }}>
+                        secretSanta
+                    </h1>
+                    <h4 style={{ fontWeight: "400", fontSize: "18px" }}>gift exchange manager</h4>
+
+                    <div className="mt-4">
+                        {!isLoading && !user && (
+                            <Row>
+                                <Col>
+                                    <Button
+                                        style={{ color: "white", fontWeight: "bold" }}
+                                        onClick={() => loginWithRedirect()}
+                                    >
+                                        Login
+                                    </Button>
+                                </Col>
+                            </Row>
+                        )}
+
+                        {!isLoading && user && (
+                            <Row>
+                                <Col>
+                                    <Button
+                                        style={{ color: "white", fontWeight: "bold" }}
+                                        onClick={() => navigate("/giftexchanges")}
+                                    >
+                                        Gift Exchanges
+                                    </Button>
+                                </Col>
+                            </Row>
+                        )}
+
+                        {!isLoading && user && (
+                            <Row>
+                                <Col>
+                                    <Button size="sm" variant="warning" onClick={() => logout()}>
+                                        Logout
+                                    </Button>
+                                </Col>
+                            </Row>
+                        )}
+                    </div>
+                </Col>
+            </Row>
+            <Row>
+                <p className="mt-5" style={{ fontSize: "12px" }}>
+                    Illustrations by <a href="https://icons8.com/illustrations/author/zD2oqC8lLBBA">Icons 8</a> from{" "}
+                    <a href="https://icons8.com/illustrations">Ouch!</a>
+                </p>
+            </Row>
+        </>
     );
 };
 

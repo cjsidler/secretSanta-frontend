@@ -46,13 +46,13 @@ const NewExchangeForm = ({ userData, showNewExchange, setShowNewExchange, addExc
             </Form.Group>
 
             <Stack direction="horizontal" gap={5}>
-                <Button variant="secondary" type="button" onClick={() => setShowNewExchange(!showNewExchange)}>
+                <Button variant="warning" type="button" onClick={() => setShowNewExchange(!showNewExchange)}>
                     Cancel
                 </Button>
 
                 <div className="ms-auto"></div>
 
-                <Button variant="warning" type="submit">
+                <Button type="submit" style={{ color: "white" }}>
                     Create
                 </Button>
             </Stack>
